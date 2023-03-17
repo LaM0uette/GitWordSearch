@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using LibGit2Sharp;
 
 namespace GitWordSearch;
@@ -8,7 +9,7 @@ public static class Program
     private static void Main()
     {
         const string repoPath = "D:\\__PROG__\\LaMUIette";
-        const string searchText = "partial";
+        const string searchText = "XD5965";
 
         using var repo = new Repository(repoPath);
         
@@ -45,5 +46,36 @@ public static class Program
                 }
             }
         }
+        
+        Console.WriteLine("Do you want to remove lines containing the search text from all files and all commits? [y/N]");
+        var response = Console.ReadLine()?.ToLower();
+
+        if (response != "y") return;
+        
+        ExecuteCommand("git", $"-C \"{repoPath}\" filter-branch -f --tree-filter \"find . -type f ! -path './.git/*' -exec sed -i '/{searchText}/d' {{}} +\" -- --all");
+        ExecuteCommand("git", $"-C \"{repoPath}\" push --force origin main");
+    }
+
+    private static void ExecuteCommand(string command, string arguments)
+    {
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = command,
+            Arguments = arguments,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = new Process { StartInfo = processInfo };
+        
+        process.OutputDataReceived += (_, e) => Console.WriteLine(e.Data);
+        process.ErrorDataReceived += (_, e) => Console.WriteLine(e.Data);
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();
     }
 }
