@@ -10,6 +10,7 @@ public static class Program
     {
         const string repoPath = "D:\\__PROG__\\LaMUIette";
         const string searchText = "XD5965";
+        const string branchName = "master";
 
         using var repo = new Repository(repoPath);
         
@@ -53,7 +54,7 @@ public static class Program
         if (response != "y") return;
         
         ExecuteCommand("git", $"-C \"{repoPath}\" filter-branch -f --tree-filter \"find . -type f ! -path './.git/*' -exec sed -i '/{searchText}/d' {{}} +\" -- --all");
-        ExecuteCommand("git", $"-C \"{repoPath}\" push --force origin main");
+        ExecuteCommand("git", $"-C \"{repoPath}\" push --force origin {branchName}");
     }
 
     private static void ExecuteCommand(string command, string arguments)
